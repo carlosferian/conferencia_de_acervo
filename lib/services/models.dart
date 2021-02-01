@@ -1,20 +1,21 @@
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 
 class Book {
+  var barcode = '';
+  var title = '';
 
-  int barcode = 0000;
-  String title = 'título';
+  Book(this.barcode, this.title);
 
-  Book({ barcode, title });
-
-  Book.fromJson(Map<String, dynamic> json){
-      this.barcode = json['id'];
-      this.title = json['name'];
+  Book.fromJson(Map<String, dynamic> json) {
+    this.barcode = json['id'];
+    this.title = json['name'];
   }
 
-  Map<String, dynamic> toJson(){
+  Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['title'] = this.title;
     return data;
   }
+ 
 }

@@ -1,20 +1,32 @@
 // @dart=2.9
 
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:excel/excel.dart';
-import 'package:inventario/services/models.dart';
+import 'package:android_path_provider/android_path_provider.dart';
 
 class Controller extends GetxController {
   var scanBarcode = '000000'.obs;
   var title = 'título'.obs;
+  var appDirectory = ''.obs;
+
+  Future<void> initAndroidPath() async {
+    String downloadsPath;
+    String documentsPath;
+
+    try {
+      downloadsPath = await AndroidPathProvider.downloadsPath;
+      documentsPath = await AndroidPathProvider.documentsPath;
+    } on PlatformException {}
+    this.appDirectory.value = documentsPath;
+  }
 
   Future<void> scanBarcodeNormal() async {
+    initAndroidPath();
     var barcodeScanRes;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
@@ -24,65 +36,61 @@ class Controller extends GetxController {
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
-    scanBarcode.value = barcodeScanRes;
-    update();
+    this.scanBarcode.value = barcodeScanRes;
+    bookDataAsset(barcodeScanRes);
+    alterSheetDocument(barcodeScanRes);
   }
 
-  void changeValue() {
-    scanBarcode.value = "novo valor";
-    print('change value');
-  }
-
-  void alterSheet(String barcode) {
-    var file = 'C:/Users/Carlos Ferian/OneDrive/ADS/flutter/Dart/teste1.xlsx';
+  void bookDataAsset(barcode) async {
+    RegExp barcodePattern = new RegExp('.?$barcode.?');
+    var titleFromSheet = 'Não localizado';
+    var file = this.appDirectory + '/teste1.xlsx';
     var bytes = File(file).readAsBytesSync();
     var excel = Excel.decodeBytes(bytes);
-    var sheet = excel['minha'];
 
-    CellStyle cellStyle = CellStyle(
-        bold: true,
-        italic: true,
-        fontFamily: getFontFamily(FontFamily.Comic_Sans_MS),
-        backgroundColorHex: '#faf487');
-
-    // alterando o arquivo:
-    for (int row = 0; row < sheet.maxRows; row++) {
-      sheet.row(row).forEach((cell) {
-        if (cell.value == barcode) {
-          cell.value = cell.value + 'encontrado';
-          cell.style = cellStyle;
-          print(cell.value);
-        }
-      });
-    }
-    // Saving the file
-
-    String outputFile =
-        "C:/Users/Carlos Ferian/OneDrive/ADS/flutter/Dart/teste1.xlsx";
-    excel.encode().then((onValue) {
-      File(join(outputFile))
-        ..createSync(recursive: true)
-        ..writeAsBytesSync(onValue);
-    });
-  }
-
-  void bookTitle(barcode) async {
-    var file = 'C:/Users/Carlos Ferian/OneDrive/ADS/flutter/Dart/teste1.xlsx';
-    var bytes = File(file).readAsBytesSync();
-    var excel = Excel.decodeBytes(bytes);
     for (var table in excel.tables.keys) {
-      for (var row in excel.tables[table].rows) {
-        if (row[0] == barcode) {
-          title.value = await row[1];
-          break;
+      for (int row = 0; row < excel.tables[table].maxRows; row++) {
+        //if (excel.tables[table].rows[row][0] == barcode)
+        if (barcodePattern
+            .hasMatch(excel.tables[table].rows[row][0].toString())) {
+          if (excel.tables[table].rows[row][0]
+              .toString()
+              .startsWith('localizado')) {
+            titleFromSheet = 'Item já processado';
+            print('já foi localizado');
+            break;
+          } else {
+            titleFromSheet = excel.tables[table].rows[row][1];
+            break;
+          }
         }
       }
     }
+    this.title.value = titleFromSheet;
   }
 
-  Text checkInformation() {
-    return Text(
-        'Dados da leitura:\nCódigo de Barras : \t${this.scanBarcode}\nTítulo : \t${this.title}',
-        style: TextStyle(fontSize: 20));
+  void alterSheetDocument(barcode) async {
+    var file = this.appDirectory + '/teste1.xlsx';
+    var bytes = File(file).readAsBytesSync();
+    var excel = Excel.decodeBytes(bytes);
+    // alterando o arquivo:
+    Sheet sheetObject = excel['minha'];
+
+    for (var table in excel.tables.keys) {
+      for (int row = 0; row < excel.tables[table].maxRows; row++) {
+        if (excel.tables[table].rows[row][0] == barcode) {
+          print(excel.tables[table].rows[row][0]);
+          var cell = sheetObject.updateCell(
+              CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: row),
+              'localizado $barcode');
+        }
+      }
+    }
+
+    excel.encode().then((onValue) {
+      File(join(this.appDirectory + '/teste1.xlsx'))
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(onValue);
+    });
   }
 }

@@ -1,14 +1,10 @@
 // @dart=2.9
-
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:inventario/services/controller.dart';
 
-void main() => runApp(GetMaterialApp(home: MyApp()));
-
-class MyApp extends StatelessWidget {
+class Scanning extends StatelessWidget {
+  final Controller c = Get.find();
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
@@ -31,7 +27,7 @@ class MyApp extends StatelessWidget {
                     child: Text('Download path'),
                   ),*/
                   RaisedButton(
-                    onPressed: ()=> c.alterSheetDocument('78408194'),
+                    onPressed: () => c.alterSheetDocument('78408194'),
                     child: Text('Alterar planilha'),
                   ),
                 ])));
