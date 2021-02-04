@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:get/get.dart';
+import 'package:inventario/pages/resultado.dart';
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:excel/excel.dart';
@@ -31,14 +32,24 @@ class Controller extends GetxController {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-          "#ff6666", "Cancel", true, ScanMode.BARCODE);
-      print(barcodeScanRes);
+          "#ff6666", "Cancelar", true, ScanMode.BARCODE);
+      //print(barcodeScanRes);
     } on PlatformException {
       barcodeScanRes = 'Failed to get platform version.';
     }
     this.scanBarcode.value = barcodeScanRes;
     bookDataAsset(barcodeScanRes);
-    alterSheetDocument(barcodeScanRes);
+    //alterSheetDocument(barcodeScanRes);
+    
+  }
+
+  Future<void> infoManual(barcode) async {
+    print('-----código de barras $barcode -----');
+    initAndroidPath();
+    this.scanBarcode.value = await barcode;
+    bookDataAsset(barcode);
+    //alterSheetDocument(barcode);
+    Get.off(Result());
   }
 
   void bookDataAsset(barcode) async {

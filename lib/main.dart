@@ -5,6 +5,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:inventario/services/controller.dart';
+import 'package:inventario/pages/manual.dart';
+import 'package:inventario/pages/resultado.dart';
 
 void main() => runApp(GetMaterialApp(home: MyApp()));
 
@@ -12,28 +14,48 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Controller c = Get.put(Controller());
+    c.initAndroidPath();
     return Scaffold(
         appBar: AppBar(title: const Text('Leitor de Código de Barras')),
         body: Container(
             alignment: Alignment.center,
             child: Flex(
                 direction: Axis.vertical,
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  RaisedButton(
-                      onPressed: () => c.scanBarcodeNormal(),
-                      child: Text("Iniciar leitura")),
-                  Obx(() => Text(
+                  Container(
+                    width: 200.0,
+                    height: 100.0,
+                    child: RaisedButton(
+                        onPressed: () {
+                          c.scanBarcodeNormal();
+                          Get.off(Result());
+                        },
+                        child: Text("Iniciar leitura")),
+                  ),
+
+                  /*Obx(() => Text(
                       'Dados da leitura:\nCódigo de Barras : \t${c.scanBarcode.value}\nTítulo : \t${c.title.value}',
-                      style: TextStyle(fontSize: 20))),
+                      style: TextStyle(fontSize: 20))),*/
                   /*RaisedButton(
                     onPressed: ()=> c.initAndroidPath(),
                     child: Text('Download path'),
                   ),*/
-                  RaisedButton(
-                    onPressed: ()=> c.alterSheetDocument('78408194'),
-                    child: Text('Alterar planilha'),
-                  ),
+                  Container(
+                    width: 200.0,
+                    height: 100.0,
+                    child: RaisedButton(
+                      onPressed: () => Get.to(Manual()),
+                      child: Text('Informar manualmente'),
+                    ),), 
+                  /*Container( 
+                    width: 200.0,
+                    height: 100.0,
+                    child: RaisedButton(
+                      onPressed: () => Get.to(Result()),
+                      child: Text('Resultado'),
+                    ),
+                  ),*/
                 ])));
   }
 }
